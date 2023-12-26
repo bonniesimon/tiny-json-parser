@@ -1,1 +1,1 @@
-char *read_code(char *file_name);
+char *read_from_file(char *file_name);

@@ -3,7 +3,7 @@
 
 #include "file.h"
 
-char *read_code(char *file_name) {
+char *read_from_file(char *file_name) {
   FILE *json_file = fopen(file_name, "r");
 
   if (json_file == NULL) {
