@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dynamic_array.h"
 #include "file.h"
@@ -13,6 +14,27 @@ void error(int line, char *message) { report(line, "", message); }
 void skip_whitespace(char *cursor) {
   while (*cursor == ' ')
     cursor++;
+}
+
+void lex_key_value(char **cursor, dynamic_array *da) {
+  char *key_start = malloc(sizeof(char));
+  if (key_start == NULL) {
+    printf("Error: key_start not allocated.\n");
+    exit(EXIT_FAILURE);
+  }
+
+  key_start = *cursor;
+
+  while (**cursor != '\"') {
+    *cursor = *cursor + 1;
+  }
+
+  int len = *cursor - key_start;
+
+  char *key = malloc(len * sizeof(char *));
+  strncpy(key, key_start, len);
+
+  da_push(da, key);
 }
 
 int main(int argc, char *argv[]) {
@@ -29,7 +51,6 @@ int main(int argc, char *argv[]) {
 
   int line_number = 1;
   char *cursor = code;
-  // printf("%d\t", line_number);
 
   while (*cursor != '\0') {
     skip_whitespace(cursor);
@@ -43,10 +64,15 @@ int main(int argc, char *argv[]) {
       break;
     case '\"':
       da_push(da, "\"");
+      cursor++;
+      lex_key_value(&cursor, da);
+      da_push(da, "\"");
       break;
     case '\n':
       line_number++;
-      // printf("%d\t", line_number);
+      break;
+    case ':':
+      da_push(da, ":");
       break;
     }
 
@@ -54,7 +80,18 @@ int main(int argc, char *argv[]) {
   }
 
   for (size_t i = 0; i < da->capacity; i++) {
-    printf("%s", da->items[i]);
+    printf("%s\n", da->items[i]);
+
+    // if (i == 0)
+    //   printf("[");
+
+    // printf(" %s ", da->items[i]);
+
+    // if (i == da->capacity - 1) {
+    //   printf("]");
+    // } else {
+    //   printf(",");
+    // }
   }
 
   da_free(da);
