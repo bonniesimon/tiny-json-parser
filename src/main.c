@@ -5,25 +5,26 @@
 #include "dynamic_array.h"
 #include "file.h"
 
-void report(int line, char *where, char *message) {
-  printf("line %d | %s :   %s\n", line, where, message);
-}
-
-void error(int line, char *message) { report(line, "", message); }
-
 typedef struct {
   int line_number;
   char *code;
   char *cursor;
 } Lexer;
 
-void skip_whitespace(char *cursor) {
-  while (*cursor == ' ')
-    cursor++;
+void report(int line, char *where, char *message) {
+  printf("line %d | %s :   %s\n", line, where, message);
+}
+
+void error(int line, char *message) { report(line, "", message); }
+
+void skip_whitespace(char **cursor) {
+  while (**cursor == ' ')
+    (*cursor)++;
 }
 
 void lex_key_value(char **cursor, dynamic_array *da) {
   char *key_start = malloc(sizeof(char));
+
   if (key_start == NULL) {
     printf("Error: key_start not allocated.\n");
     exit(EXIT_FAILURE);
@@ -43,6 +44,38 @@ void lex_key_value(char **cursor, dynamic_array *da) {
   da_push(da, key);
 }
 
+dynamic_array *lex(Lexer *lexer) {
+  dynamic_array *da = init_dynamic_array(256);
+
+  while (*(lexer->cursor) != '\0') {
+    skip_whitespace(&lexer->cursor);
+
+    if (*lexer->cursor == '{') {
+      da_push(da, "{");
+      lexer->cursor++;
+    } else if (*(lexer->cursor) == '}') {
+      da_push(da, "}");
+      lexer->cursor++;
+    } else if (*lexer->cursor == '\"') {
+      da_push(da, "\"");
+      lexer->cursor++;
+      lex_key_value(&lexer->cursor, da);
+      da_push(da, "\"");
+      lexer->cursor++;
+    } else if (*lexer->cursor == '\n') {
+      lexer->line_number++;
+      lexer->cursor++;
+    } else if (*lexer->cursor == ':') {
+      da_push(da, ":");
+      lexer->cursor++;
+    } else {
+      // pass
+    }
+  }
+
+  return da;
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     printf("Usage: tiny [file.extension]\n");
@@ -55,53 +88,12 @@ int main(int argc, char *argv[]) {
   Lexer lexer = {0};
 
   lexer.code = read_from_file(file_name);
-  dynamic_array *da = init_dynamic_array(256);
-
   lexer.line_number = 1;
   lexer.cursor = lexer.code;
 
-  while (*lexer.cursor != '\0') {
-    skip_whitespace(lexer.cursor);
+  dynamic_array *lex_result = lex(&lexer);
 
-    switch (*lexer.cursor) {
-    case '{':
-      da_push(da, "{");
-      break;
-    case '}':
-      da_push(da, "}");
-      break;
-    case '\"':
-      da_push(da, "\"");
-      lexer.cursor++;
-      lex_key_value(&lexer.cursor, da);
-      da_push(da, "\"");
-      break;
-    case '\n':
-      lexer.line_number++;
-      break;
-    case ':':
-      da_push(da, ":");
-      break;
-    }
-
-    lexer.cursor++;
-  }
-
-  for (size_t i = 0; i < da->capacity; i++) {
-    printf("%s\n", da->items[i]);
-
-    // if (i == 0)
-    //   printf("[");
-
-    // printf(" %s ", da->items[i]);
-
-    // if (i == da->capacity - 1) {
-    //   printf("]");
-    // } else {
-    //   printf(",");
-    // }
-  }
-
-  da_free(da);
+  da_pretty_print(lex_result);
+  da_free(lex_result);
   return 0;
 }
