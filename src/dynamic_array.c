@@ -47,7 +47,7 @@ void da_pretty_print(dynamic_array *da) {
     if (i == da->capacity - 1) {
       // printf("]");
     } else {
-      printf(",");
+      printf("__");
     }
   }
 }

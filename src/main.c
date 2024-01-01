@@ -22,7 +22,9 @@ void skip_whitespace(char **cursor) {
     (*cursor)++;
 }
 
-void lex_key_value(char **cursor, dynamic_array *da) {
+// We need to parse the key and value in here. This should be
+// lex_key_and_value
+void lex_key_or_value(char **cursor, dynamic_array *da) {
   char *key_start = malloc(sizeof(char));
 
   if (key_start == NULL) {
@@ -59,7 +61,7 @@ dynamic_array *lex(Lexer *lexer) {
     } else if (*lexer->cursor == '\"') {
       da_push(da, "\"");
       lexer->cursor++;
-      lex_key_value(&lexer->cursor, da);
+      lex_key_or_value(&lexer->cursor, da);
       da_push(da, "\"");
       lexer->cursor++;
     } else if (*lexer->cursor == '\n') {
@@ -67,6 +69,10 @@ dynamic_array *lex(Lexer *lexer) {
       lexer->cursor++;
     } else if (*lexer->cursor == ':') {
       da_push(da, ":");
+      lexer->cursor++;
+      // Finding comma should be done inside lex_key_and_value.
+    } else if (*lexer->cursor == ',') {
+      da_push(da, ",");
       lexer->cursor++;
     } else {
       // pass
