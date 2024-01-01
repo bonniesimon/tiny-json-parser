@@ -34,3 +34,20 @@ void da_free(dynamic_array *da) {
   free(da->items);
   free(da);
 }
+
+void da_pretty_print(dynamic_array *da) {
+  for (size_t i = 0; i < da->capacity; i++) {
+    // printf("%s\n", da->items[i]);
+
+    // if (i == 0)
+    //   printf("[");
+
+    printf(" %s ", da->items[i]);
+
+    if (i == da->capacity - 1) {
+      // printf("]");
+    } else {
+      printf(",");
+    }
+  }
+}

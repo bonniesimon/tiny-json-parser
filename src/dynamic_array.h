@@ -9,3 +9,4 @@ typedef struct {
 dynamic_array *init_dynamic_array(size_t size);
 void da_push(dynamic_array *da, char *value);
 void da_free(dynamic_array *da);
+void da_pretty_print(dynamic_array *da);
