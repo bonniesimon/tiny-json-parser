@@ -11,6 +11,12 @@ void report(int line, char *where, char *message) {
 
 void error(int line, char *message) { report(line, "", message); }
 
+typedef struct {
+  int line_number;
+  char *code;
+  char *cursor;
+} Lexer;
+
 void skip_whitespace(char *cursor) {
   while (*cursor == ' ')
     cursor++;
@@ -46,16 +52,18 @@ int main(int argc, char *argv[]) {
 
   char *file_name = argv[1];
 
-  char *code = read_from_file(file_name);
+  Lexer lexer = {0};
+
+  lexer.code = read_from_file(file_name);
   dynamic_array *da = init_dynamic_array(256);
 
-  int line_number = 1;
-  char *cursor = code;
+  lexer.line_number = 1;
+  lexer.cursor = lexer.code;
 
-  while (*cursor != '\0') {
-    skip_whitespace(cursor);
+  while (*lexer.cursor != '\0') {
+    skip_whitespace(lexer.cursor);
 
-    switch (*cursor) {
+    switch (*lexer.cursor) {
     case '{':
       da_push(da, "{");
       break;
@@ -64,19 +72,19 @@ int main(int argc, char *argv[]) {
       break;
     case '\"':
       da_push(da, "\"");
-      cursor++;
-      lex_key_value(&cursor, da);
+      lexer.cursor++;
+      lex_key_value(&lexer.cursor, da);
       da_push(da, "\"");
       break;
     case '\n':
-      line_number++;
+      lexer.line_number++;
       break;
     case ':':
       da_push(da, ":");
       break;
     }
 
-    cursor++;
+    lexer.cursor++;
   }
 
   for (size_t i = 0; i < da->capacity; i++) {
