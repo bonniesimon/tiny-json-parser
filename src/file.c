@@ -15,7 +15,7 @@ char *read_from_file(char *file_name) {
   long file_length = ftell(json_file);
   fseek(json_file, 0, SEEK_SET);
 
-  char *code = malloc(file_length);
+  char *code = malloc(file_length + 1);
 
   if (code == NULL) {
     printf("Error: Unable to allocate memory for code\n");
@@ -23,6 +23,7 @@ char *read_from_file(char *file_name) {
   }
 
   fread(code, 1, file_length, json_file);
+  code[file_length] = '\0';
 
   fclose(json_file);
 
